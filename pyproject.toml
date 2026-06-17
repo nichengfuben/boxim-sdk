@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boxim-sdk"
+version = "3.0.0"
+description = "BoxIM SDK for Python - BoxIM 即时通讯平台 SDK"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "nichengfuben"},
+]
+keywords = ["boxim", "im", "chat", "sdk", "websocket"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Communications :: Chat",
+]
+dependencies = [
+    "aiohttp>=3.9.0",
+    "requests>=2.31.0",
+    "urllib3>=2.0.0",
+    "websockets>=12.0",
+]
+
+[project.urls]
+Homepage = "https://www.boximchat.com"
+Repository = "https://github.com/nichengfuben/boxim-sdk"
+
+[tool.setuptools.packages.find]
+include = ["boxim*"]
+
+[tool.setuptools.package-data]
+boxim = ["emoji_assets/*.gif", "emoji_assets/*.png"]
