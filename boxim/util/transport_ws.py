@@ -59,7 +59,6 @@ class WebSocketTransport(EventEmitter):
         self._reconnect_count = 0
         self._connected = False
         self._filter_online_status = True
-        self._bot_user_id: Optional[int] = None
 
     @property
     def is_connected(self) -> bool:
@@ -110,19 +109,6 @@ class WebSocketTransport(EventEmitter):
             enabled: True 表示过滤，False 表示透传
         """
         self._filter_online_status = enabled
-
-    def set_bot_user_id(self, user_id: int) -> None:
-        """设置 bot 自身的 user_id，用于过滤自身发送的消息。
-
-        登录成功后由 BoxIM 主类调用，WebSocket 消息分发时会检查 sendId
-        是否与 bot_user_id 相同，相同则跳过，避免 bot 自己的消息被当作
-        新消息重复处理。
-
-        Args:
-            user_id: bot 自身的用户 ID
-        """
-        self._bot_user_id = user_id
-        _logger.debug("已设置 bot user_id: %s", user_id)
 
     async def connect(self) -> None:
         """建立 WebSocket 连接并完成身份认证。
@@ -397,15 +383,6 @@ class WebSocketTransport(EventEmitter):
             await self.emit("online_status", msg_data)
             return
 
-        # 过滤 bot 自己发送的消息（BoxIM 服务端会将自身发送的消息通过 WebSocket 回推）
-        if self._is_self_message(msg_data):
-            _logger.debug(
-                "跳过 bot 自身发送的消息: id=%s, sendId=%s",
-                msg_data.get("id"),
-                msg_data.get("sendId"),
-            )
-            return
-
         if self._is_rtc_message_type(msg_type):
             await self.emit("rtc_message", msg_data, is_group)
 
@@ -439,26 +416,6 @@ class WebSocketTransport(EventEmitter):
             是否为 RTC 信令消息
         """
         return (100 <= msg_type < 120) or (200 <= msg_type < 230)
-
-    def _is_self_message(self, msg_data: Dict[str, Any]) -> bool:
-        """检查消息是否为 bot 自己发送的。
-
-        当 bot_user_id 已设置且消息的 sendId 与之相同时，判定为自身消息。
-        BoxIM 服务端会将 bot 自身发送的消息通过 WebSocket 回推，
-        不过滤会导致 bot 把自己的回复当作新消息重复处理。
-
-        Args:
-            msg_data: 消息数据字典
-
-        Returns:
-            是否为 bot 自身发送的消息
-        """
-        if self._bot_user_id is None:
-            return False
-        send_id = msg_data.get("sendId")
-        if send_id is None:
-            return False
-        return send_id == self._bot_user_id
 
     async def _dispatch_to_handlers(
         self,
