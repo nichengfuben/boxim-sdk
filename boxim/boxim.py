@@ -324,11 +324,20 @@ class BoxIM:
     def _save_user_id(self, user_id: Any) -> None:
         """将用户 ID 持久化到令牌存储中（如果支持）。
 
+        同时将 bot_user_id 设置到 WebSocket transport，
+        用于过滤 bot 自身发送的消息，避免消息回推导致重复处理。
+
         Args:
             user_id: 用户 ID
         """
         if hasattr(self._token_store, "set"):
             self._token_store.set("USER_ID", user_id)  # type: ignore[attr-defined]
+        # 同步到 WebSocket transport，过滤自身消息
+        if self._ws is not None and user_id is not None:
+            try:
+                self._ws.set_bot_user_id(int(user_id))
+            except (ValueError, TypeError):
+                pass
 
     def register(
         self,

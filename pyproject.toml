@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "boxim-sdk"
-version = "3.0.0"
+version = "3.0.1"
 description = "BoxIM SDK for Python - BoxIM 即时通讯平台 SDK"
 readme = "README.md"
 license = "MIT"
